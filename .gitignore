@@ -26,3 +26,6 @@ __pycache__/
 # Subagent-driven-development scratch (ledger, briefs, review packages)
 .superpowers/
 .agents/
+
+# Holo Lab local qualification evidence (may contain host paths/provider names)
+/.holo-lab/
