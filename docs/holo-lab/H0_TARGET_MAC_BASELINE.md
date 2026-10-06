@@ -17,7 +17,7 @@ From the Hologram Live qualification checkout:
 git fetch origin
 git checkout holo-lab/qualification-2026-10-06
 git status --short
-./scripts/holo-lab-h0-baseline.sh
+bash scripts/holo-lab-h0-baseline.sh
 ```
 
 The collector writes a timestamped local record under:
