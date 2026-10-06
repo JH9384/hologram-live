@@ -70,11 +70,23 @@ The vendoring record states:
 
 This is strong provenance, but the carried patch behavior still requires local qualification.
 
-### Upstream validation observation
+### Repository validation observations
 
-For Hologram Live commit cbbf97b5b8199f5701c621cd3ba0b26187417ffa, the upstream `gates-nightly` workflow completed successfully on 2026-10-06 (run 37404311956).
+For Hologram Live commit cbbf97b5b8199f5701c621cd3ba0b26187417ffa:
 
-This is supporting upstream evidence only. It does not substitute for the target-Mac H1 run.
+- upstream `gates-nightly` completed successfully on 2026-10-06 (run 37404311956);
+- after the JH9384 fork was fast-forwarded to that exact commit, the fork's required release workflows all completed successfully:
+  - `gates` run 37504432456 — SUCCESS;
+  - `registry-os` run 37504432514 — SUCCESS;
+  - `ci` run 37504432444 / 37504519906 — SUCCESS;
+- `model-hub-clients` run 37504432424 — SUCCESS;
+- `model-hub-openapi` run 37504432323 — SUCCESS.
+
+This satisfies the repository's own `scripts/check-gates.sh` release-workflow naming contract on the forked exact SHA. It does not substitute for the target-Mac H1 run.
+
+For Hologram core commit b6d9a76ca953610f9facfdefac0d0db0ece4d954, the latest upstream Release CI run observed on 2026-10-06 is overall FAILURE (run 37422042548). The failing job is `Bare-metal UEFI boot (QEMU/OVMF)`, step `Boot hologram.efi and assert PASS`. The same failure is present in the Oct 2–5 scheduled runs. In that latest run, the Holospaces V&V job and the `CS docs conformance (arc42 · C4 · OPM · ISO 15288 — V1–V8)` job both succeed.
+
+Therefore Hologram Live is repository-gate green at the qualification SHA, while the broader current Hologram core substrate carries an open repeated bare-metal boot finding.
 
 ## 3. Known findings at campaign entry
 
@@ -110,6 +122,20 @@ Hologram Storage documents replication/distribution as planned and references a 
 
 Classification: future/unavailable capability.  
 Disposition: qualify local storage only unless an actual network implementation is observed.
+
+### F-005 — Hologram core current Release CI is repeatedly red on bare-metal UEFI boot
+
+Hologram core commit b6d9a76ca953610f9facfdefac0d0db0ece4d954 has repeated scheduled Release CI failures from 2026-10-02 through 2026-10-06. The observed failing witness is `Bare-metal UEFI boot (QEMU/OVMF)` at `Boot hologram.efi and assert PASS`. The same runs continue to pass Holospaces V&V and arc42/C4/OPM/ISO 15288 documentation conformance.
+
+Classification: executable substrate / platform witness failure.  
+Disposition: OPEN. Preserve as an upstream/core qualification finding. Do not describe the complete Hologram core baseline as green until the bare-metal witness is explained or repaired and rerun.
+
+### F-006 — Iroh design-status documents are stale relative to implementation
+
+The Phase 2a and Phase 2b design documents still state `Designed, not implemented`, while current Cargo.toml, DEPENDENCIES.md, `src/cluster/iroh.rs`, `src/cluster/replication.rs`, and the enforced immutable-replication feature demonstrate that implementation work has landed. The default CI/release workflows inspected do not explicitly run a `--features p2p` test lane; the Kappa pin gate does inspect the `oci,p2p` dependency graph.
+
+Classification: documentation/status drift + validation coverage gap.  
+Disposition: OPEN for qualification. Holo Lab must explicitly build/test the p2p feature before promoting Iroh transport/blob replication to Observed Truth.
 
 ## 4. Qualification campaign
 
