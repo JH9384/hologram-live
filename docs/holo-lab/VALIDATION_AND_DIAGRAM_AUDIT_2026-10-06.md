@@ -5,10 +5,11 @@ Qualification target: JH9384/hologram-live @ cbbf97b5b8199f5701c621cd3ba0b261874
 
 ## Bottom line
 
-The repository/intake review commitments have been completed and reconciled. The target-Mac qualification commitments have been specified but have not yet been executed. Two material open findings remain outside the Hologram Live release-gate green state:
+The repository/intake review commitments have been completed and reconciled. The target-Mac qualification commitments have been specified but have not yet been executed. One material open qualification finding remains outside the Hologram Live release-gate green state:
 
-1. current Hologram core Release CI repeatedly fails its bare-metal UEFI boot witness;
-2. Iroh Phase 2a/2b design documents say "designed, not implemented" even though implementation has landed, and no explicit p2p test lane was found in the inspected default workflows.
+1. Iroh Phase 2a/2b design documents say "designed, not implemented" even though implementation has landed, and no explicit p2p test lane was found in the inspected default workflows.
+
+The Hologram core bare-metal Release CI remains operationally red, but its root cause is isolated to the Rust 1.99 / LLVM 23 `wcslen` toolchain regression and is no longer an unexplained Hologram runtime finding.
 
 No integration into SERP or UAR has been performed.
 
@@ -34,7 +35,7 @@ No integration into SERP or UAR has been performed.
 | Check architecture/diagram inventory | Live architecture + core/Holospaces C4/OPM/arc42 | DONE |
 | Verify diagrams are validated | core docs-conformance V1-V8 | PASS |
 | Freeze qualification plan | QUALIFICATION_BASELINE_2026-10-06.md | DONE |
-| Run H0 host baseline on target Mac | requires target Mac observation | NOT RUN |
+| Run H0 host baseline on target Mac | read-only collector + local-only evidence procedure prepared; target Mac observation still required | READY / NOT RUN |
 | Run H1 just verify on target Mac | requires target Mac execution | NOT RUN |
 | Run H2 local lifecycle | campaign execution | NOT RUN |
 | Run H3 content identity round trip | campaign execution | NOT RUN |
