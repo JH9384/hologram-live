@@ -1,6 +1,6 @@
 # Hologram Core UEFI Witness Drift Investigation — 2026-10-06
 
-Status: OPEN — ROOT CAUSE NOT YET PROVEN
+Status: ROOT CAUSE ISOLATED — UPSTREAM RELEASE WITNESS STILL RED
 
 ## Observation
 
@@ -63,7 +63,34 @@ Matrix:
 - build UEFI binary as a separate step;
 - run the repository's exact `scripts/uefi-boot-test.sh`.
 
-At time of this record, the branch push has not produced an Actions run. Treat the experiment as PREPARED / NOT EXECUTED, not failed.
+Executed evidence:
+
+- run 37523619260:
+  - Rust 1.98.1: build PASS; exact UEFI boot witness PASS;
+  - Rust 1.99.0: build FAIL before QEMU boot.
+- run 37523852104 preserved compiler/environment artifacts. Rust 1.99.0 environment:
+  - rustc 1.99.0 (b940084d7 2026-09-28);
+  - LLVM 23.1.1;
+  - QEMU 8.2.2;
+  - OVMF 2024.02-2ubuntu0.10;
+  - GitHub runner image ubuntu24 / 20260927.320.1.
+- exact Rust 1.99.0 linker failure: `rust-lld: error: undefined symbol: wcslen`, referenced from `libuefi`.
+- run 37524151790 three-way falsification:
+  - Rust 1.98.1 baseline: build/boot green;
+  - Rust 1.99.0 unmodified: link failure;
+  - Rust 1.99.0 with `-C llvm-args=-disable-loop-idiom-wcslen`: build PASS and exact UEFI boot PASS.
+
+The experiment is therefore EXECUTED and the causal boundary is isolated.
+
+## Root cause
+
+The failure is caused by the Rust 1.99.0 / LLVM 23 toolchain boundary, specifically LLVM's new wide-string loop-idiom recognition. LLVM can transform a qualifying loop into a call to `wcslen`. On freestanding/UEFI builds, the Rust 1.99.0 toolchain used here does not provide the required `wcslen` symbol at link time.
+
+This exact defect was independently reported as rust-lang/rust issue #160827. That issue bisected the behavior to the LLVM 23 uprev. A minimal freestanding reproducer showed LLVM 22 emitted no undefined symbol while LLVM 23 emitted `U wcslen`. The Rust compiler-builtins project fixed the defect by adding a `wcslen` builtin (compiler-builtins commit `dd502243dc0d5f99aa50b6bb3fad53ec9a4df0ce`).
+
+The Hologram diagnostic independently reproduces the same signature and proves the documented LLVM-disable workaround restores both build and boot.
+
+Classification: external toolchain compatibility regression + release-witness reproducibility defect. It is not an observed Hologram bare-metal runtime defect.
 
 ## Falsification logic
 
@@ -119,6 +146,14 @@ Until the diagnostic is executed and the witness is green under a controlled env
 - no architecture claim should be withdrawn solely because this externalized witness is red;
 - no bare-metal capability should be promoted to newly observed Holo Lab truth from the current run.
 
+## Recommended smallest repair
+
+For a blocking release witness, pin the known-qualified compiler (Rust 1.98.1) rather than following the moving `stable` channel. Add a separate non-blocking current-stable compatibility lane so future toolchain changes are discovered without retroactively changing what the release witness means.
+
+Do not make the LLVM-disable flag the permanent product fix unless the project explicitly chooses that compatibility policy. It is valuable as a diagnostic/falsification witness; the upstream compiler-builtins fix is the proper ecosystem repair.
+
+Also pin the runner generation to `ubuntu-24.04`, record QEMU/OVMF versions, split build from boot, and upload diagnostics on failure.
+
 ## Decision
 
-Preserve the failure. Do not weaken or delete the witness. Make the environment deterministic enough that a future green result means the same thing tomorrow that it means today.
+Preserve the historical failure and its evidence. Do not weaken or delete the witness. The bare-metal capability is re-demonstrated under Rust 1.98.1 and under Rust 1.99.0 with the specific LLVM transformation disabled. The upstream scheduled workflow remains red until its moving-stable policy is repaired or a Rust release containing the compiler-builtins correction is adopted.
