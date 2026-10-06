@@ -70,6 +70,12 @@ The vendoring record states:
 
 This is strong provenance, but the carried patch behavior still requires local qualification.
 
+### Upstream validation observation
+
+For Hologram Live commit cbbf97b5b8199f5701c621cd3ba0b26187417ffa, the upstream `gates-nightly` workflow completed successfully on 2026-10-06 (run 37404311956).
+
+This is supporting upstream evidence only. It does not substitute for the target-Mac H1 run.
+
 ## 3. Known findings at campaign entry
 
 ### F-001 — Hologram AI dependency-lineage inconsistency
