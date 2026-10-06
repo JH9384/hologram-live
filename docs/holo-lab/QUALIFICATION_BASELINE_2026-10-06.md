@@ -123,12 +123,18 @@ Hologram Storage documents replication/distribution as planned and references a 
 Classification: future/unavailable capability.  
 Disposition: qualify local storage only unless an actual network implementation is observed.
 
-### F-005 — Hologram core current Release CI is repeatedly red on bare-metal UEFI boot
+### F-005 — Hologram core Release CI red traced to Rust 1.99 / LLVM 23 `wcslen` regression
 
-Hologram core commit b6d9a76ca953610f9facfdefac0d0db0ece4d954 has repeated scheduled Release CI failures from 2026-10-02 through 2026-10-06. The observed failing witness is `Bare-metal UEFI boot (QEMU/OVMF)` at `Boot hologram.efi and assert PASS`. The same runs continue to pass Holospaces V&V and arc42/C4/OPM/ISO 15288 documentation conformance.
+Hologram core commit b6d9a76ca953610f9facfdefac0d0db0ece4d954 has repeated scheduled Release CI failures from 2026-10-02 through 2026-10-06 at the bare-metal UEFI witness. A controlled fork experiment isolated the cause:
 
-Classification: executable substrate / platform witness failure.  
-Disposition: OPEN. Preserve as an upstream/core qualification finding. Do not describe the complete Hologram core baseline as green until the bare-metal witness is explained or repaired and rerun.
+- Rust 1.98.1: UEFI build PASS; exact QEMU/OVMF witness PASS.
+- Rust 1.99.0 / LLVM 23.1.1: link FAIL before QEMU, `undefined symbol: wcslen`.
+- Rust 1.99.0 with `-C llvm-args=-disable-loop-idiom-wcslen`: build PASS; exact witness PASS.
+
+This matches rust-lang/rust #160827, independently bisected to the LLVM 23 uprev and fixed in rust-lang/compiler-builtins by adding the missing `wcslen` builtin.
+
+Classification: external toolchain compatibility regression + release-witness reproducibility defect; **not an observed Hologram bare-metal runtime defect**.  
+Disposition: ROOT CAUSE ISOLATED. Upstream scheduled Release CI remains red until its moving `stable` toolchain policy is repaired or a Rust release containing the compiler-builtins correction is adopted. For Holo Lab, preserve the red upstream evidence and use the controlled results when interpreting the bare-metal capability.
 
 ### F-006 — Iroh design-status documents are stale relative to implementation
 
