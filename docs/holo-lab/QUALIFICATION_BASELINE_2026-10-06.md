@@ -133,12 +133,15 @@ On the target Mac:
 1. clone or update JH9384/hologram-live
 2. checkout cbbf97b5b8199f5701c621cd3ba0b26187417ffa
 3. confirm clean worktree
-4. build locked release binary:
-   cargo build --release --locked --package hologram-live --bin hologram
-5. record binary SHA-256 and size
-6. run the repository's existing test/gate suite before adding experiments
+4. install/use the repository's declared Rust toolchain context (CI currently uses Rust 1.97.1; Cargo.toml declares rust-version 1.95)
+5. run the repository-owned full verification contract:
+   just verify
+6. confirm that verify includes formatting, file-size, product-boundary, Kappa pin, OCI streaming, locked checks/tests, OCI checks, Clippy, BDD, release build, and smoke test
+7. record target/release/hologram SHA-256 and size
 
-Pass condition: clean locked build and existing gates succeed without local source modification.
+Pass condition: clean locked build and the repository-owned `just verify` contract succeed without local source modification.
+
+Note: CI currently exercises the core Rust lane on Ubuntu 24.04. A successful target-Mac `just verify` run is therefore new observed platform evidence, not merely a repeat of CI.
 
 ### Gate H2 — Minimal local service
 
