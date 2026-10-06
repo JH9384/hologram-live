@@ -182,11 +182,11 @@ flowchart TD
 
 ## Open validation findings
 
-### VA-001 — Core bare-metal witness red
+### VA-001 — Core bare-metal witness red — ROOT CAUSE ISOLATED
 
-Hologram core b6d9a76 has repeated Release CI failures Oct 2–6 in the bare-metal UEFI QEMU/OVMF boot job. Earlier runs on the same SHA were green, making this especially worth investigating: the source SHA is unchanged while the scheduled witness changed outcome.
+Controlled runs on the unchanged Hologram source isolate the red Oct 2–6 release witness to Rust 1.99 / LLVM 23: Rust 1.98.1 builds and boots; unmodified Rust 1.99.0 fails at link with `undefined symbol: wcslen`; Rust 1.99.0 with the LLVM wcslen loop-idiom transformation disabled builds and boots.
 
-This could indicate runner/environment drift, dependency/tooling drift, nondeterminism, or a latent timing/platform defect. Do not guess which until logs are inspected.
+This matches rust-lang/rust #160827 and the compiler-builtins `wcslen` correction. Treat this as a toolchain/reproducibility finding, not a Hologram bare-metal runtime failure. Upstream Release CI remains operationally red until its workflow/toolchain policy changes.
 
 ### VA-002 — Iroh status drift and p2p test coverage
 
@@ -222,6 +222,6 @@ The correct project state is:
 REPOSITORY INTAKE: COMPLETE
 DIAGRAM/VALIDATION ACCOUNTING: COMPLETE
 HOLOGRAM LIVE RELEASE GATES: GREEN AT QUALIFICATION SHA
-HOLOGRAM CORE OVERALL RELEASE CI: OPEN/RED — BARE-METAL WITNESS
+HOLOGRAM CORE OVERALL RELEASE CI: RED, ROOT CAUSE ISOLATED — RUST 1.99 / LLVM 23 WCSLEN TOOLCHAIN REGRESSION
 TARGET-MAC H0-H10: NOT YET EXECUTED
 SERP/UAR INTEGRATION: NOT STARTED BY DESIGN
